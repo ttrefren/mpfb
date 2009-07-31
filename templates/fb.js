@@ -303,6 +303,20 @@ mpmetrics.track_funnel = function(funnel, step, goal, properties, callback) {
     mpmetrics.track('mp_funnel', properties, callback, 'funnels');
 };
 
+mpmetrics.register = function(props, type, days) {
+    // register a set of super properties to be included in all events and funnels
+    if (!type) { type = "all"; }
+    if (!days) { days = 7; }
+    
+    if (props) {
+        for (var p in props) {
+            mpmetrics.super_properties[type][p] = props[p];
+        }    
+    }
+
+    // mpmetrics.set_cookie("mp_super_properties", mpmetrics.json_encode(mpmetrics.super_properties), days);
+};
+
 mpmetrics.log = function(data, callback) {
     /*  Deprecated, do not use.
         Use mpmetrics.track() instead */
