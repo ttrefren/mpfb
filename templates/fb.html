@@ -2,15 +2,16 @@
 	<head>
 		<title>Hi there fb</title>
 	</head>
-	<script src="http://timtrefren.com/fb.js?v=9"></script>
-	<script>mpmetrics.init("a95f256858e816442d567825667f8d3d");
-        mpmetrics.register({"shit": "damn"});
+	<script src="http://timtrefren.com/fb/templates/fb.js?v=17"></script>
+	
+	<script type="text/javascript">
+	    var mpmetrics = new MixpanelLib("ac777d47adbef4f19497558f6b91ad4b");
 	</script>
     this is the body
-    <input type="button" onclick="mpmetrics.track('fbjs_test', {'category':'button', 'action':null})"></input>
+    <input type="button" onclick="mpmetrics.track('fbjs_test', {'category':'button', 'action':null}, function() { console.log('clicked')})"></input>
     <input type="button" onclick="mpmetrics.track('fbjs_test_none')"></input>
     <input type="button" onclick="mpmetrics.track_funnel('hai', 1, 'start', {'category':'button', 'action':'click'})"></input>
     <input type="button" onclick="mpmetrics.log({'category':'yeah', 'action':null})"></input>
-    
+
 </html>
 

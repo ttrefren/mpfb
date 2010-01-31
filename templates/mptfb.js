@@ -11,9 +11,12 @@ mpmetrics.init = function(token) {
     mpt = document.createElement("div");
     mpmetrics.mpt.setStyle({height: '1px', width: '1px'});
     root.appendChild(mpt);
+    console.log("about to get super");
     try {
         mpmetrics.get_super();
-    } catch(err) {}
+    } catch(err) {
+        console.log(err);
+    }
 };
 
 mpmetrics.get_unixtime = function() {
@@ -355,5 +358,18 @@ mpmetrics.log = function(data, callback) {
         data.ip = 1;
         data.img = 1;
         this.send_request(this.api_host + "/log/", data);
+    }
+};
+
+mpmetrics.get_super = function() {
+    var cookie_props = mpmetrics.get_cookie("mp_super_properties");
+    console.log(cookie_props);
+    
+    // var cookie_props = eval('(' + mpmetrics.get_cookie("mp_super_properties") + ')');
+    
+    if (cookie_props) {
+        for (var i in cookie_props) {
+            if (i) { mpmetrics.super_properties[i] = cookie_props[i]; }
+        }
     }
 };

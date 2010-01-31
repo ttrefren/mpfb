@@ -7,9 +7,8 @@ var mpmetrics = {};
 mpmetrics.super_properties = {"all": {}, "events": {}, "funnels": {}};
 
 mpmetrics.init = function(token) {
-    var mp_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
     this.token = token;
-    this.api_host = mp_protocol + 'api.mixpanel.com';
+    this.api_host = 'http://api.mixpanel.com';
     try {
         mpmetrics.get_super();
     } catch(err) {}
@@ -53,10 +52,15 @@ mpmetrics.track_funnel = function(funnel, step, goal, properties, callback) {
     mpmetrics.track('mp_funnel', properties, callback, "funnels");
 };
 
+mpmetrics.nav = function(url) {
+    // window.location = url;
+};
+
 mpmetrics.track = function(event, properties, callback, type) {
     if (!type) { type = "events"; }
     if (!properties) { properties = {}; }
     if (!properties.token) { properties.token = this.token; }
+    if (callback) { this.callback = callback; }
     properties.time = this.get_unixtime();
     
     // First add specific super props
@@ -70,7 +74,7 @@ mpmetrics.track = function(event, properties, callback, type) {
     
     // Then add any general supers that were not in specific 
     if (mpmetrics.super_properties.all) {
-        for (p in mpmetrics.super_properties.all) {
+        for (var p in mpmetrics.super_properties.all) {
             if (!properties[p]) {
                 properties[p] = mpmetrics.super_properties.all[p];
             }
@@ -100,11 +104,9 @@ mpmetrics.register = function(props, type, days) {
     if (!type) { type = "all"; }
     if (!days) { days = 7; }
     
-    if (props) {
-        for (var p in props) {
-            mpmetrics.super_properties[type][p] = props[p];
-        }    
-    }
+    for (var p in props) {
+        mpmetrics.super_properties[type][p] = props[p];
+    }    
 
     mpmetrics.set_cookie("mp_super_properties", mpmetrics.json_encode(mpmetrics.super_properties), days);
 };
@@ -132,7 +134,10 @@ mpmetrics.get_unixtime = function() {
 };
 
 mpmetrics.jsonp_callback = function(response) {
+    console.log("in callback");
     if (this.callback) { 
+        console.log(response);
+        console.log(this.callback);
         this.callback(response); 
         this.callback = false; 
     }
