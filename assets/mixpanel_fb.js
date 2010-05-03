@@ -7,6 +7,7 @@ var MixpanelLib = function(token) {
         test: false
     };
     metrics.super_properties = {"all": {}, "events": {}, "funnels": {}};
+	metrics.funnels = {};
 
     metrics.init = function(token) {
         metrics.token = token;
@@ -372,7 +373,6 @@ var MixpanelLib = function(token) {
     metrics.register = function(properties, type) {
         // register a set of super properties to be included in all events and funnels
         if (!type || !metrics.super_properties[type]) { type = "all"; }
-        if (!days) { days = 7; }
     
         if (properties) {
             for (var p in properties) {

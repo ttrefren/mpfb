@@ -3,7 +3,7 @@
 		<title>Hi there fb</title>
 	</head>
     <link rel="stylesheet" href="http://wo0.org/mpfb/assets/qunit.css" type="text/css" media="screen" />
-    <script src="http://wo0.org/mpfb/assets/mixpanel_fb.js?v=17"></script>
+    <script src="http://wo0.org/mpfb/assets/mixpanel_fb.js?v=19"></script>
 	
 	<script type="text/javascript">
     	try {
@@ -20,8 +20,10 @@
 	        fn();
 	        console.log('Test results for: ' + description);
 	        for(var i in stack) {
-	            console.log('## ' + i + ': ' + stack[i]);
-	        }
+				if (!isNaN(i)) {
+					console.log('## ' + i + ': ' + stack[i]);
+				}
+			}
 		}	
 
 		function ok(statement) {
@@ -35,6 +37,10 @@
 		function same(first, second) {
 			if (first != second) {
 				stack.push('Not equal: ' + first + ', ' + second);
+				console.log('-----------------');
+				console.dir(first);
+				console.dir(second);
+				console.log('-----------------');
 			} else {
 			    stack.push('equal');
 			}
