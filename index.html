@@ -35,12 +35,9 @@
 		}
 
 		function same(first, second) {
-			if (!equiv(first, second)) {
+			if (first != second) {
 				stack.push('Not equal: ' + first + ', ' + second);
-				console.log('-----------------');
-				console.dir(first);
-				console.dir(second);
-				console.log('-----------------');
+				console.log('x');
 			} else {
 			    stack.push('equal');
 			}
@@ -75,6 +72,9 @@
                     mpmetrics.super_properties[sp] = {};
                 }
                 
+				console.log('sp');
+				console.dir(mpmetrics.super_properties);
+
                 var props = {'hi': 'there'};
                 
                 same(mpmetrics.super_properties.all, {});
@@ -82,19 +82,26 @@
                 same(mpmetrics.super_properties.funnels, {});
                 
                 mpmetrics.register(props);
-                
+
+				console.log('all');
+				console.dir(mpmetrics.super_properties);
                 same(mpmetrics.super_properties.all, props);
                 same(mpmetrics.super_properties.events, {});
                 same(mpmetrics.super_properties.funnels, {});
                 
+
                 mpmetrics.register(props, "events");
                 
+				console.log('events');
+				console.dir(mpmetrics.super_properties);
                 same(mpmetrics.super_properties.all, props);
                 same(mpmetrics.super_properties.events, props);
                 same(mpmetrics.super_properties.funnels, {});
                 
                 mpmetrics.register(props, "funnels");
                 
+				console.log('funnels');
+				console.dir(mpmetrics.super_properties);
                 same(mpmetrics.super_properties.all, props);
                 same(mpmetrics.super_properties.events, props);
                 same(mpmetrics.super_properties.funnels, props);
