@@ -3,6 +3,11 @@ var MixpanelLib = function(token) {
     var mpt;
     var mpt_total = 0, mpt_cap = 100; 
 
+    metrics.config = {
+        test: false
+    };
+    metrics.super_properties = {"all": {}, "events": {}, "funnels": {}};
+
     metrics.init = function(token) {
         metrics.token = token;
         metrics.api_host = 'https://api.mixpanel.com';
@@ -27,7 +32,7 @@ var MixpanelLib = function(token) {
         img.setId(id);
         return img;
     };
-
+    
     metrics.http_build_query = function(formdata, arg_separator) {
         var key, use_val, use_key, i = 0, tmp_arr = [];
 
@@ -48,6 +53,7 @@ var MixpanelLib = function(token) {
     metrics.send_request = function(url, data) {
         mpt_total = mpt_total % mpt_cap;
         if (data) { url += '?' + metrics.http_build_query(data); }
+        if (metrics.config.test) { url += '&test=1'; }
         url += '&_=' + new Date().getTime().toString();
         
         var img = metrics.create_img(url);
@@ -229,15 +235,52 @@ var MixpanelLib = function(token) {
         return enc;
     };
 
-    metrics.track = function(event, properties) {
-        //  Usage: metrics.track('event', {'property1':'value1', 'gender':'male'});
-        if (!properties){
-            properties = {};
+    metrics.log = function(data, callback) {
+        /*  Deprecated, do not use.
+            Use metrics.track() instead 
+        */
+        if (! data.project) { data.project = metrics.token; }
+        if (data.project && data.category) {
+            metrics.callback = callback;
+            data.ip = 1;
+            data.img = 1;
+            metrics.send_request(metrics.api_host + "/log/", data);
         }
+    };
+    
+    metrics.track = function(event, properties, type) {
+        /*  @event: Event to track
+            @properties: key-value pairs to send with event
+            @type: Type of event (used for including super properties)
+            Usage: metrics.track('event', {'property1':'value1', 'gender':'male'});
+        */
+        if (!type) { type = "events"; }
+        if (!properties) { properties = {}; }
+        if (!properties.token) { properties.token = metrics.token; }
 
         properties.time = metrics.get_unixtime();
         properties.token = metrics.token;
 
+        var p;
+        
+        // First add specific super props
+        if (type != "all") {
+            for (p in metrics.super_properties[type]) {
+                if (!properties[p]) {                
+                    properties[p] = metrics.super_properties[type][p];
+                }
+            }
+        }
+    
+        // Then add any general supers that were not in specific 
+        if (metrics.super_properties.all) {
+            for (p in metrics.super_properties.all) {
+                if (!properties[p]) {
+                    properties[p] = metrics.super_properties.all[p];
+                }
+            }
+        }
+        
         var data = {
             'event' : event,
             'properties' : properties
@@ -252,15 +295,15 @@ var MixpanelLib = function(token) {
                 'img' : 1
             }
         );
-
+        
+        metrics.track_predefined_funnels(event, properties);
     };
 
     metrics.track_funnel = function(funnel, step, goal, properties) {
-        /*
-        @funnel: Name of this funnel
-        @step: integer, starting with 1
-        @goal: name for this step
-        Usage: metrics.track_funnel('registration', 1, 'splash_page', {'gender': 'male', 'referer': 'Twitter'});
+        /*  @funnel: Name of this funnel
+            @step: integer, starting with 1
+            @goal: name for this step
+            Usage: metrics.track_funnel('registration', 1, 'splash_page', {'gender': 'male', 'referer': 'Twitter'});
         */
         if (! properties) { properties = {}; }
 
@@ -268,19 +311,81 @@ var MixpanelLib = function(token) {
         properties.step = parseInt(step, 10);
         properties.goal = goal;
 
-        metrics.track('mp_funnel', properties);
+        metrics.track('mp_funnel', properties, 'funnels');
+    };
+    
+    metrics.register_funnel = function(funnel_name, steps) {
+        metrics.funnels[funnel_name] = steps;
+    };
+    
+    metrics.track_predefined_funnels = function(event, properties) {
+        if (event && metrics.funnels) {
+            for (var funnel in metrics.funnels) {
+                if (funnel) {
+                    for (var i = 0; i < metrics.funnels[funnel].length; ++i) {
+                        if (metrics.funnels[funnel][i]) {
+                            if (metrics.funnels[funnel][i] == event) {
+                                // Somewhat inefficient, todo: batch requests one day?
+                                metrics.track_funnel(funnel, i+1, event, properties);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     };
 
-    metrics.log = function(data, callback) {
-        /*  Deprecated, do not use.
-            Use metrics.track() instead */
-        if (! data.project) { data.project = metrics.token; }
-        if (data.project && data.category) {
-            metrics.callback = callback;
-            data.ip = 1;
-            data.img = 1;
-            metrics.send_request(metrics.api_host + "/log/", data);
+    metrics.set_config = function(configuration) {
+        /*  Set configuration variables.  Currently only used for test parameter.
+            @configuration: configuration dictionary
+            
+            Usage: mpmetrics.set_config({ test: 1 });
+        */
+        for (var c in configuration) {
+            if (c) {
+                metrics.config[c] = configuration[c];
+            }
         }
+    };
+    
+    metrics.register_once = function(properties, type, default_value) {
+        /*  Register super properties idempotently
+        
+            @properties: properties dictionary
+            @type: tracking type to send these properties with: all, events, or funnels
+            @default_value: value to override, if it exists
+        */
+        if (!type || !metrics.super_properties[type]) { type = "all"; }
+        if (!default_value) { default_value = "None"; }
+
+        if (properties) {
+            for (var p in properties) {
+                if (p) {
+                    if (!metrics.super_properties[type][p] || metrics.super_properties[type][p] == default_value) {
+                        metrics.super_properties[type][p] = properties[p];
+                    }
+                }
+            }
+        }
+    };
+
+    metrics.register = function(properties, type) {
+        // register a set of super properties to be included in all events and funnels
+        if (!type || !metrics.super_properties[type]) { type = "all"; }
+        if (!days) { days = 7; }
+    
+        if (properties) {
+            for (var p in properties) {
+                if (p) {
+                    metrics.super_properties[type][p] = properties[p];
+                }
+            }    
+        }
+    };
+    
+    metrics.identify = function(person) {
+        // Will bind a unique identifer to the user via a cookie (super properties)
+        metrics.register_once({'distinct_id': person}, 'all', null, 30);
     };
     
     // Initiation

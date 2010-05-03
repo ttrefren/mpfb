@@ -2,16 +2,158 @@
 	<head>
 		<title>Hi there fb</title>
 	</head>
-	<script src="http://timtrefren.com/fb/templates/fb.js?v=17"></script>
+	<script src="http://code.jquery.com/jquery-latest.js"> </script>
+    <script src="assets/qunit.js"></script>
+    <link rel="stylesheet" href="assets/qunit.css" type="text/css" media="screen" />
+    <script src="assets/fb.js?v=17"></script>
 	
 	<script type="text/javascript">
-	    var mpmetrics = new MixpanelLib("ac777d47adbef4f19497558f6b91ad4b");
+    	try {
+            var mpmetrics = new MixpanelLib("ac777d47adbef4f19497558f6b91ad4b");
+        } catch(err) {
+            console.log(err);
+            null_fn = function () {};
+            var mpmetrics = { track: null_fn, track_funnel: null_fn, register: null_fn, register_once: null_fn };
+        }
 	</script>
-    this is the body
-    <input type="button" onclick="mpmetrics.track('fbjs_test', {'category':'button', 'action':null}, function() { console.log('clicked')})"></input>
-    <input type="button" onclick="mpmetrics.track('fbjs_test_none')"></input>
-    <input type="button" onclick="mpmetrics.track_funnel('hai', 1, 'start', {'category':'button', 'action':'click'})"></input>
-    <input type="button" onclick="mpmetrics.log({'category':'yeah', 'action':null})"></input>
-
+	<script type="text/javascript">
+        
+        window.onload = function() {
+            console.log("ready");
+            test("tru?", function() {ok(true, "yes");});
+            
+            test("mpmetrics.track", function() {
+                mpmetrics.track('test');
+            });
+            
+            test("mpmetrics.track_funnel", function() {
+                mpmetrics.track_funnel('test funnel', 1, 'start');
+            });
+            
+            test("mpmetrics.register_funnel", function() {
+                var fname = "test funnel",
+                    steps = ['1', '2'];
+                
+                mpmetrics.register_funnel(fname, steps);
+                ok(mpmetrics.funnels[fname] == steps);
+            });
+            
+            test("mpmetrics.set_config", function() {
+                ok(!mpmetrics.config.test);
+                mpmetrics.set_config({ test: 1 });
+                ok(mpmetrics.config.test == 1);
+            });
+            
+            test("mpmetrics.register", function() {
+                var props = {'hi': 'there'};
+                
+                same(mpmetrics.super_properties.all, {});
+                same(mpmetrics.super_properties.events, {});
+                same(mpmetrics.super_properties.funnels, {});
+                
+                mpmetrics.register(props);
+                
+                same(mpmetrics.super_properties.all, props);
+                same(mpmetrics.super_properties.events, {});
+                same(mpmetrics.super_properties.funnels, {});
+                
+                mpmetrics.register(props, "events");
+                
+                same(mpmetrics.super_properties.all, props);
+                same(mpmetrics.super_properties.events, props);
+                same(mpmetrics.super_properties.funnels, {});
+                
+                mpmetrics.register(props, "funnels");
+                
+                same(mpmetrics.super_properties.all, props);
+                same(mpmetrics.super_properties.events, props);
+                same(mpmetrics.super_properties.funnels, props);
+                
+            });
+            
+            test("mpmetrics.register_once", function() {
+                var props = {'hi': 'there'},
+                    props1 = {'hi': 'ho'};
+                
+                same(mpmetrics.super_properties.all, {});
+                same(mpmetrics.super_properties.events, {});
+                same(mpmetrics.super_properties.funnels, {});
+                
+                mpmetrics.register_once(props);
+                
+                same(mpmetrics.super_properties.all, props);
+                same(mpmetrics.super_properties.events, {});
+                same(mpmetrics.super_properties.funnels, {});
+                
+                mpmetrics.register_once(props1);
+                
+                same(mpmetrics.super_properties.all, props);
+                same(mpmetrics.super_properties.events, {});
+                same(mpmetrics.super_properties.funnels, {});
+                
+                mpmetrics.register_once(props, "events");
+                
+                same(mpmetrics.super_properties.all, props);
+                same(mpmetrics.super_properties.events, props);
+                same(mpmetrics.super_properties.funnels, {});
+                
+                mpmetrics.register_once(props1, "events");
+                
+                same(mpmetrics.super_properties.all, props);
+                same(mpmetrics.super_properties.events, props);
+                same(mpmetrics.super_properties.funnels, {});
+                
+                mpmetrics.register_once(props, "funnels");
+                
+                same(mpmetrics.super_properties.all, props);
+                same(mpmetrics.super_properties.events, props);
+                same(mpmetrics.super_properties.funnels, props);
+                
+                mpmetrics.register_once(props1, "funnels");
+                
+                same(mpmetrics.super_properties.all, props);
+                same(mpmetrics.super_properties.events, props);
+                same(mpmetrics.super_properties.funnels, props);
+            });
+        };
+        
+        test("mpmetrics.identify", function() {
+            var distinct = '2308dsfasdlkj',
+                changed = '092308923098';
+            
+            mpmetrics.identify(distinct);
+            ok(mpmetrics.super_properties.all.distinct_id == distinct);
+            
+            mpmetrics.identify(changed);
+            ok(mpmetrics.super_properties.all.distinct_id == distinct);
+        });
+        // 
+        // metrics.track_predefined_funnels = function(event, properties) {
+        //     if (event && metrics.funnels) {
+        //         for (var funnel in metrics.funnels) {
+        //             if (funnel) {
+        //                 for (var i = 0; i < metrics.funnels[funnel].length; ++i) {
+        //                     if (metrics.funnels[funnel][i]) {
+        //                         if (metrics.funnels[funnel][i] == event) {
+        //                             // Somewhat inefficient, todo: batch requests one day?
+        //                             metrics.track_funnel(funnel, i+1, event, properties);
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // };
+        
+        
+    </script>
+    
+    
+	<body>
+	    <h1 id="qunit-header">QUnit example</h1>
+        <h2 id="qunit-banner"></h2>
+        <h2 id="qunit-userAgent"></h2>
+        <ol id="qunit-tests"></ol>
+	</body>
 </html>
 
