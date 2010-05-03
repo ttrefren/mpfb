@@ -2,10 +2,8 @@
 	<head>
 		<title>Hi there fb</title>
 	</head>
-	<script src="http://code.jquery.com/jquery-latest.js"> </script>
-    <script src="assets/qunit.js"></script>
-    <link rel="stylesheet" href="assets/qunit.css" type="text/css" media="screen" />
-    <script src="assets/fb.js?v=17"></script>
+    <link rel="stylesheet" href="http://wo0.org/mpfb/assets/qunit.css" type="text/css" media="screen" />
+    <script src="http://wo0.org/mpfb/assets/mixpanel_fb.js?v=17"></script>
 	
 	<script type="text/javascript">
     	try {
@@ -17,10 +15,29 @@
         }
 	</script>
 	<script type="text/javascript">
-        
-        window.onload = function() {
+		function test(description, fn) {
+			try {
+				fn();
+				console.log(description + ' passes');
+			} catch (err) {
+				console.log(description + ' failed: ' + err);
+			}		
+		}	
+
+		function ok(statement) {
+			if (!statement) {
+				throw('Statement is false: ' + statement);
+			}
+		}
+
+		function same(first, second) {
+			if (first != second) {
+				throw('Not equal');
+			}
+		}
+
+        setTimeout( function() {
             console.log("ready");
-            test("tru?", function() {ok(true, "yes");});
             
             test("mpmetrics.track", function() {
                 mpmetrics.track('test');
@@ -115,19 +132,20 @@
                 same(mpmetrics.super_properties.events, props);
                 same(mpmetrics.super_properties.funnels, props);
             });
-        };
+
+			test("mpmetrics.identify", function() {
+				var distinct = '2308dsfasdlkj',
+					changed = '092308923098';
+				
+				mpmetrics.identify(distinct);
+				ok(mpmetrics.super_properties.all.distinct_id == distinct);
+				
+				mpmetrics.identify(changed);
+				ok(mpmetrics.super_properties.all.distinct_id == distinct);
+			});
+		}, 10);
         
-        test("mpmetrics.identify", function() {
-            var distinct = '2308dsfasdlkj',
-                changed = '092308923098';
-            
-            mpmetrics.identify(distinct);
-            ok(mpmetrics.super_properties.all.distinct_id == distinct);
-            
-            mpmetrics.identify(changed);
-            ok(mpmetrics.super_properties.all.distinct_id == distinct);
-        });
-        // 
+       // 
         // metrics.track_predefined_funnels = function(event, properties) {
         //     if (event && metrics.funnels) {
         //         for (var funnel in metrics.funnels) {
@@ -149,11 +167,9 @@
     </script>
     
     
-	<body>
 	    <h1 id="qunit-header">QUnit example</h1>
         <h2 id="qunit-banner"></h2>
         <h2 id="qunit-userAgent"></h2>
         <ol id="qunit-tests"></ol>
-	</body>
 </html>
 
