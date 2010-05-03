@@ -2,8 +2,9 @@
 	<head>
 		<title>Hi there fb</title>
 	</head>
-    <link rel="stylesheet" href="http://wo0.org/mpfb/assets/qunit.css" type="text/css" media="screen" />
-    <script src="http://wo0.org/mpfb/assets/mixpanel_fb.js?v=17"></script>
+    <link rel="stylesheet" href="assets/qunit.css" type="text/css" media="screen" />
+    <script src="assets/mixpanel.js" type="text/javascript"></script>
+    <script src="assets/qunit.js" type="text/javascript"></script>
 	
 	<script type="text/javascript">
     	try {
@@ -14,34 +15,28 @@
         }
 	</script>
 	<script type="text/javascript">
-	    stack = [];
-		function test(description, fn) {
-		    stack = [];
-	        fn();
-	        console.log('Test results for: ' + description);
-	        for(var i in stack) {
-	            console.log('## ' + i + ': ' + stack[i]);
-	        }
-		}	
+        // function test(description, fn) {
+        //  try {
+        //      fn();
+        //      console.log(description + ' passes');
+        //  } catch (err) {
+        //      console.log(description + ' failed: ' + err);
+        //  }       
+        // }    
+        // 
+        // function ok(statement) {
+        //  if (!statement) {
+        //      throw('Statement is false: ' + statement);
+        //  }
+        // }
+        // 
+        // function same(first, second) {
+        //  if (first != second) {
+        //      throw('Not equal');
+        //  }
+        // }
 
-		function ok(statement) {
-			if (!statement) {
-				stack.push('Statement is false: ' + statement);
-			} else {
-			    stack.push('ok');
-			}
-		}
-
-		function same(first, second) {
-			if (first != second) {
-				stack.push('Not equal: ' + first + ', ' + second);
-			} else {
-			    stack.push('equal');
-			}
-		}
-
-        setTimeout( function() {
-            
+        setTimeout( function() {            
             test("mpmetrics.track", function() {
                 mpmetrics.track('test');
             });
